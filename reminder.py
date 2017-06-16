@@ -56,22 +56,25 @@ def main():
     code = os.getenv("CODE", "cancelled")
 
     # create session object
-    s = webuntis.Session(
+    sess = webuntis.Session(
         username=cred["username"],
         password=cred["password"],
         server='cissa.webuntis.com',
         useragent="WebUntis Test",
         school='bk-bochum')
-    s.login()
+    sess.login()
 
-    timet = Timetable(s)
+    timet = Timetable(sess)
     tt = timet.generate_tt(klasse, days)
+    # sorting result by start time
+    tt = list(tt)
+    tt.sort(key=lambda po: po.start)
 
-    print("Der folgende Unterricht fällt für die {0} aus.".format(klasse))
+    print("Der folgende Unterricht fällt für die {0} aus.\n".format(klasse))
 
     for po in tt:
-        if code is None or po.code == code:
-            le = functools.reduce(
+        if po.code == code:
+            te = functools.reduce(
                 lambda acc, le: acc+le.surname,
                 po.teachers, "")
             ro = functools.reduce(
@@ -81,9 +84,12 @@ def main():
                 lambda acc, s: acc+s.name,
                 po.subjects, "")
 
-            print(po.start, su, le, ro, sep="\t")
+            print(str(po.start) + " " + su,
+                  te,
+                  ro,
+                  sep="\t")
 
-    s.logout()
+    sess.logout()
 
 
 if __name__ == "__main__":
