@@ -4,6 +4,7 @@
 import webuntis
 import configparser
 import datetime
+import os
 
 import smtplib
 from email.message import EmailMessage
@@ -48,6 +49,11 @@ def main():
     config.read("config.ini")
     cred = config["credentials"]
 
+    # configuration via environment variables
+    klasse = os.getenv("KLASSE", None)
+    days = int(os.getenv("DAYS", 5))
+    code = os.getenv("CODE", "cancelled")
+
     # create session object
     s = webuntis.Session(
         username=cred["username"],
@@ -58,17 +64,19 @@ def main():
     s.login()
 
     timet = Timetable(s)
-    tt = timet.generate_tt("ITA15a", 5)
+    tt = timet.generate_tt(klasse, days)
 
     for po in tt:
-        print(po.start,
-              "CO", po.code,
-              # "TY",po.type,
-              # po.end,
-              "KL", [k.name for k in po.klassen],
-              "LE", [t.name+" "+t.surname for t in po.teachers],
-              "RA", [r.name for r in po.rooms],
-              "SU", [s.name for s in po.subjects])
+        if code is None or po.code == code:
+            print(po.start,
+                  "CO", po.code,
+                  # "TY",po.type,
+                  # po.end,
+                  "KL", [k.name for k in po.klassen],
+                  "LE", [t.name+" "+t.surname for t in po.teachers],
+                  "RA", [r.name for r in po.rooms],
+                  "SU", [s.name for s in po.subjects])
+
     s.logout()
 
 
