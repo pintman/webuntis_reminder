@@ -5,6 +5,7 @@ import webuntis
 import configparser
 import datetime
 import os
+import functools
 
 import smtplib
 from email.message import EmailMessage
@@ -66,16 +67,21 @@ def main():
     timet = Timetable(s)
     tt = timet.generate_tt(klasse, days)
 
+    print("Der folgende Unterricht fällt für die {0} aus.".format(klasse))
+
     for po in tt:
         if code is None or po.code == code:
-            print(po.start,
-                  "CO", po.code,
-                  # "TY",po.type,
-                  # po.end,
-                  "KL", [k.name for k in po.klassen],
-                  "LE", [t.name+" "+t.surname for t in po.teachers],
-                  "RA", [r.name for r in po.rooms],
-                  "SU", [s.name for s in po.subjects])
+            le = functools.reduce(
+                lambda acc, le: acc+le.surname,
+                po.teachers, "")
+            ro = functools.reduce(
+                lambda acc, r: acc+r.name,
+                po.rooms, "")
+            su = functools.reduce(
+                lambda acc, s: acc+s.name,
+                po.subjects, "")
+
+            print(po.start, su, le, ro, sep="\t")
 
     s.logout()
 
