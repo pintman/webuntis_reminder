@@ -15,37 +15,45 @@ s = webuntis.Session(
     password=cred["password"],
     server='cissa.webuntis.com',
     useragent="WebUntis Test",
-    school='bk-bochum').login()
+    school='bk-bochum')
+s.login()
 
+"""
 # do some output
-for k in s.klassen():
-    print(k.name)
+for d in s.subjects():
+    print("Subject ", d.name, d.long_name)
 
-date1 = datetime.date(year=2017,month=5,day=8)
-date2 = date1 + datetime.timedelta(2)
+for k in s.klassen():
+    print("Klasse", k.name)
+"""
+
+tod = datetime.date.today()
+date1 = datetime.date(year=2017, month=7, day=6)
+date2 = date1 + datetime.timedelta(days=0)
 print("from", date1, "to", date2)
 
-bak = s.teachers().filter(name="BAK")[0]
+# bak = s.teachers().filter(name="BAK")[0]
+klasse = s.klassen().filter(name="ITF15a")[0]
 
-tt = s.timetable(start=date1,end=date2,teacher=bak)
+tt = s.timetable(start=date1, end=date2, klasse=klasse)
+
 for po in tt:
-    if (len(po.klassen)==1 and
-        len(po.rooms)==1 and
-        len(po.subjects)==1 and
-        len(po.teachers)==1):
-        print(po.start,
-              #po.end,
-              po.klassen[0].name,
-              po.teachers[0].name,
-              po.rooms[0].name,
-              po.subjects[0].name)
+    print(po.start,
+          "CO", po.code,
+          # "TY",po.type,
+          # po.end,
+          "KL", [k.name for k in po.klassen],
+          "LE", [t.name+" "+t.surname for t in po.teachers],
+          "RA", [r.name for r in po.rooms],
+          "SU", [s.name for s in po.subjects])
 
+"""
 print("== table ==")
 table = tt.to_table()
 for row in table:
-    #print(row)
+    # print(row)
     for hour in row:
         print(hour, end="")
     print("")
-        
+"""
 s.logout()
