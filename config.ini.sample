@@ -1,3 +1,5 @@
+# copy this config file template to config.ini
+
 [credentials]
 username = myusername
 password = 123456
