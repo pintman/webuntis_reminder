@@ -55,6 +55,10 @@ def main():
     days = int(os.getenv("DAYS", 5))
     code = os.getenv("CODE", "cancelled")
 
+    if klasse is None:
+        print("Provide a class in EVN var KLASSE")
+        exit(1)
+
     # create session object
     sess = webuntis.Session(
         username=cred["username"],
@@ -70,7 +74,9 @@ def main():
     tt = list(tt)
     tt.sort(key=lambda po: po.start)
 
-    print("Der folgende Unterricht fällt für die {0} aus.\n".format(klasse))
+    print(
+        """Der folgende Unterricht fällt für die {0} in den folgenden {1} Tagen aus.""".format(
+        klasse, days))
 
     for po in tt:
         if po.code == code:
