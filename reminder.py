@@ -63,9 +63,9 @@ def main():
     sess = webuntis.Session(
         username=cred["username"],
         password=cred["password"],
-        server='cissa.webuntis.com',
+        server=cred['server'],
         useragent="WebUntis Test",
-        school='bk-bochum')
+        school=cred['school'])
     sess.login()
 
     timet = Timetable(sess)

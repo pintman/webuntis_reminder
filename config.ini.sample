@@ -1,6 +1,8 @@
 [credentials]
 username = myusername
 password = 123456
+server= xxx.webuntis.com
+school= schoolname
 
 [mail]
 host = mailserver
