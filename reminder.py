@@ -56,7 +56,7 @@ def main():
     code = os.getenv("CODE", "cancelled")
 
     if klasse is None:
-        print("Provide a class in EVN var KLASSE")
+        print("Provide a class in env var KLASSE")
         exit(1)
 
     # create session object
@@ -75,24 +75,24 @@ def main():
     tt.sort(key=lambda po: po.start)
 
     print(
-        """Der folgende Unterricht fällt für die {0} in den folgenden {1} Tagen aus.""".format(
+        "Der folgende Unterricht fällt für die {0} in den folgenden {1} Tagen aus.\n".format(
         klasse, days))
 
-    for po in tt:
+    for po in tt:  # po is a PeriodObject
         if po.code == code:
-            te = functools.reduce(
+            teachr = functools.reduce(
                 lambda acc, le: acc+le.surname,
                 po.teachers, "")
-            ro = functools.reduce(
+            room = functools.reduce(
                 lambda acc, r: acc+r.name,
                 po.rooms, "")
-            su = functools.reduce(
+            subj = functools.reduce(
                 lambda acc, s: acc+s.name,
                 po.subjects, "")
 
-            print(str(po.start) + " " + su,
-                  te,
-                  ro,
+            print(str(po.start) + " " + subj,
+                  teachr,
+                  room,
                   sep="\t")
 
     sess.logout()
