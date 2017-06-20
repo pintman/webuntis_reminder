@@ -3,6 +3,7 @@
 
 import webuntis
 import configparser
+import logging
 import datetime
 import os
 import functools
@@ -28,6 +29,7 @@ class Mailer:
         msg['To'] = self.to
         msg.set_content(body)
 
+        logging.debug("sending mail: %s", body)
         s = smtplib.SMTP(self.smtp_server)
         s.login(self.smtp_user, self.smtp_pass)
         s.send_message(msg)
@@ -39,12 +41,13 @@ class Timetable:
         self.code = code
         self.klasse = klasse
         self.days = days
-        
+
         date1 = datetime.date.today()
         # date1 = datetime.date(year=2017, month=7, day=6)
         date2 = date1 + datetime.timedelta(days=days)
 
         klasse_object = session.klassen().filter(name=klasse)[0]
+        logging.debug("creating time table for %s", klasse)
         self.tt = session.timetable(start=date1, end=date2,
                                     klasse=klasse_object)
         self.tt = list(self.tt)
@@ -54,6 +57,7 @@ class Timetable:
         body = """Der folgende Unterricht fällt für die {0} in den folgenden {1} Tagen aus.\n\n""".format(
             self.klasse, self.days)
 
+        logging.debug("traversing %s PeriodObjects in session result.", len(self.tt))
         for po in self.tt:  # po is a PeriodObject
             if po.code == self.code:
                 teachr = functools.reduce(
@@ -73,22 +77,22 @@ class Timetable:
 
 
 def main():
-    # read credentials from config file
+    logging.debug("reading credentials from config file")
     config = configparser.ConfigParser()
     config.read("config.ini")
     cred = config["credentials"]
 
-    # configuration via environment variables
+    logging.debug("checking environment variables")
     klasse = os.getenv("KLASSE", None)
     days = int(os.getenv("DAYS", 5))
     code = os.getenv("CODE", "cancelled")
     recipient = os.getenv("RECIPIENT", None)
 
     if klasse is None or recipient is None:
-        print("Provide a class and recipi in env var KLASSE and RECIPIENT")
+        print("Provide a class and a recipient in env var KLASSE and RECIPIENT")
         exit(1)
 
-    # create session object
+    logging.debug("creating session object and connecting")
     sess = webuntis.Session(
         username=cred["username"],
         password=cred["password"],
@@ -97,7 +101,7 @@ def main():
         school=cred['school'])
     sess.login()
 
-    # create mailer
+    logging.debug("creating mailer")
     mailconf = config['mail']
     mailer = Mailer(mailconf['host'], mailconf['user'], mailconf['pass'],
                     mailconf['sender'], recipient, "WebUntis Reminder")
@@ -108,6 +112,10 @@ def main():
     sess.logout()
 
 
-
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename="webuntis_reminder.log",
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)s:%(message)s')
+
     main()

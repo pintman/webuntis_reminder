@@ -1,3 +1,6 @@
 python-webuntis-ve/
 config.ini
 *~
+webuntis_reminder.log
+__pycache__/
+
