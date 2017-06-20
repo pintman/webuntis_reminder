@@ -38,6 +38,13 @@ class Mailer:
 
 class FilteredTimetable:
     def __init__(self, session, klasse, days, code):
+        """Creating a filtered table for the given class.
+
+        session: webuntis session used for creating the timetable
+        klasse: create table for this klasse.
+        days: starting from today and up to so many days into the future.
+        code: One of None, "cancelled" or "irregular"
+        """
         self.code = code
         self.klasse = klasse
         self.days = days
