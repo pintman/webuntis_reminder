@@ -72,19 +72,18 @@ in den folgenden {anzahl_tage} Tagen aus.
         logging.debug("traversing %s PeriodObjects in session result.",
                       len(self.period_objects))
         for po in self.period_objects:  # po is a PeriodObject
-            if po.code == self.code:
-                teachr = functools.reduce(
-                    lambda acc, le: acc+le.surname,
-                    po.teachers, "")
-                room = functools.reduce(
-                    lambda acc, r: acc+r.name,
-                    po.rooms, "")
-                subj = functools.reduce(
-                    lambda acc, s: acc+s.name,
-                    po.subjects, "")
+            teachr = functools.reduce(
+                lambda acc, le: acc+le.surname,
+                po.teachers, "")
+            room = functools.reduce(
+                lambda acc, r: acc+r.name,
+                po.rooms, "")
+            subj = functools.reduce(
+                lambda acc, s: acc+s.name,
+                po.subjects, "")
 
-                body += " {st} {su}\t{t}\t{r}\n".format(
-                    st=str(po.start), su=subj, t=teachr, r=room)
+            body += " {st} {su}\t{t}\t{r}\n".format(
+                st=str(po.start), su=subj, t=teachr, r=room)
 
         mailer.send_mail(body)
 
