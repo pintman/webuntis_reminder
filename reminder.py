@@ -113,7 +113,7 @@ def main():
         username=cred["username"],
         password=cred["password"],
         server=cred['server'],
-        useragent="WebUntis Test",
+        useragent="WebUntis Reminder",
         school=cred['school'])
     sess.login()
 
