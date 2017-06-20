@@ -36,7 +36,7 @@ class Mailer:
         s.quit()
 
 
-class Timetable:
+class FilteredTimetable:
     def __init__(self, session, klasse, days, code):
         self.code = code
         self.klasse = klasse
@@ -48,17 +48,23 @@ class Timetable:
 
         klasse_object = session.klassen().filter(name=klasse)[0]
         logging.debug("creating time table for %s", klasse)
-        self.tt = session.timetable(start=date1, end=date2,
-                                    klasse=klasse_object)
-        self.tt = list(self.tt)
-        self.tt.sort(key=lambda po: po.start)
+        pos = session.timetable(start=date1, end=date2,
+                                klasse=klasse_object)
+        pos = list(pos)
+        # filtering period objects that conform to the given code
+        self.period_objects = [po for po in pos if po.code == code]
+        self.period_objects.sort(key=lambda po: po.start)
 
     def send_via_mail(self, mailer):
-        body = """Der folgende Unterricht fällt für die {0} in den folgenden {1} Tagen aus.\n\n""".format(
-            self.klasse, self.days)
+        body = """
+Der folgende Unterricht fällt für die {klasse} 
+in den folgenden {anzahl_tage} Tagen aus.
 
-        logging.debug("traversing %s PeriodObjects in session result.", len(self.tt))
-        for po in self.tt:  # po is a PeriodObject
+""".format(klasse=self.klasse, anzahl_tage=self.days)
+
+        logging.debug("traversing %s PeriodObjects in session result.",
+                      len(self.period_objects))
+        for po in self.period_objects:  # po is a PeriodObject
             if po.code == self.code:
                 teachr = functools.reduce(
                     lambda acc, le: acc+le.surname,
@@ -74,6 +80,10 @@ class Timetable:
                     st=str(po.start), su=subj, t=teachr, r=room)
 
         mailer.send_mail(body)
+
+    def is_empty(self):
+
+        return len(self.period_objects) == 0
 
 
 def main():
@@ -106,8 +116,9 @@ def main():
     mailer = Mailer(mailconf['host'], mailconf['user'], mailconf['pass'],
                     mailconf['sender'], recipient, "WebUntis Reminder")
 
-    timet = Timetable(sess, klasse, days, code)
-    timet.send_via_mail(mailer)
+    timet = FilteredTimetable(sess, klasse, days, code)
+    if not timet.is_empty():
+        timet.send_via_mail(mailer)
 
     sess.logout()
 
