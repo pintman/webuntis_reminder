@@ -13,18 +13,17 @@ from email.message import EmailMessage
 
 
 class Mailer:
-    def __init__(self, smtp_server, smtp_user, smtp_pass, from_, to, subject):
+    def __init__(self, smtp_server, smtp_user, smtp_pass, from_, to):
         self.smtp_server = smtp_server
         self.smtp_user = smtp_user
         self.smtp_pass = smtp_pass
         self.from_ = from_
         self.to = to
-        self.subject = subject
 
-    def send_mail(self, body):
+    def send_mail(self, subject, body):
         msg = EmailMessage()
         msg.add_header("X-Mailer", "webuntisreminder")
-        msg['Subject'] = self.subject
+        msg['Subject'] = subject
         msg['From'] = self.from_
         msg['To'] = self.to
         msg.set_content(body)
@@ -37,7 +36,7 @@ class Mailer:
 
 
 class FilteredTimetable:
-    def __init__(self, session, klasse, days, code):
+    def __init__(self, session, klasse, days, code, use_cache=True):
         """Creating a filtered table for the given class.
 
         session: webuntis session used for creating the timetable
@@ -56,13 +55,14 @@ class FilteredTimetable:
         klasse_object = session.klassen().filter(name=klasse)[0]
         logging.debug("creating time table for %s", klasse)
         pos = session.timetable(start=date1, end=date2,
-                                klasse=klasse_object)
+                                klasse=klasse_object,
+                                from_cache=use_cache)
         pos = list(pos)
         # filtering period objects that conform to the given code
         self.period_objects = [po for po in pos if po.code == code]
         self.period_objects.sort(key=lambda po: po.start)
 
-    def send_via_mail(self, mailer):
+    def send_via_mail(self, mailer, subject):
         body = """
 Der folgende Unterricht fällt für die {klasse} 
 in den folgenden {anzahl_tage} Tagen aus.
@@ -72,20 +72,14 @@ in den folgenden {anzahl_tage} Tagen aus.
         logging.debug("traversing %s PeriodObjects in session result.",
                       len(self.period_objects))
         for po in self.period_objects:  # po is a PeriodObject
-            teachr = functools.reduce(
-                lambda acc, le: acc+le.surname,
-                po.teachers, "")
-            room = functools.reduce(
-                lambda acc, r: acc+r.name,
-                po.rooms, "")
             subj = functools.reduce(
-                lambda acc, s: acc+s.name,
+                lambda acc, s: acc+s.name + " " + s.long_name,
                 po.subjects, "")
 
-            body += " {st} {su}\t{t}\t{r}\n".format(
-                st=str(po.start), su=subj, t=teachr, r=room)
+            body += " {start} {su}\n".format(
+                start=str(po.start), su=subj)  # , t=teachr, r=room)
 
-        mailer.send_mail(body)
+        mailer.send_mail(subject, body)
 
     def is_empty(self):
 
@@ -99,13 +93,13 @@ def main():
     cred = config["credentials"]
 
     logging.debug("checking environment variables")
-    klasse = os.getenv("KLASSE", None)
     days = int(os.getenv("DAYS", 5))
     code = os.getenv("CODE", "cancelled")
     recipient = os.getenv("RECIPIENT", None)
 
-    if klasse is None or recipient is None:
-        print("Provide a class and a recipient in env var KLASSE and RECIPIENT")
+    # if klasse is None or recipient is None:
+    if recipient is None:
+        print("Provide a recipient in env var KLASSE and RECIPIENT")
         exit(1)
 
     logging.debug("creating session object and connecting")
@@ -120,11 +114,15 @@ def main():
     logging.debug("creating mailer")
     mailconf = config['mail']
     mailer = Mailer(mailconf['host'], mailconf['user'], mailconf['pass'],
-                    mailconf['sender'], recipient, "WebUntis Reminder")
+                    mailconf['sender'], recipient)
 
-    timet = FilteredTimetable(sess, klasse, days, code)
-    if not timet.is_empty():
-        timet.send_via_mail(mailer)
+    for klasse in sess.klassen():
+        logging.debug("Checking Klasse %s", klasse.name)
+
+        timet = FilteredTimetable(sess, klasse.name, days, code)
+        if not timet.is_empty():
+            logging.debug("sending mail for %s", klasse.name)
+            timet.send_via_mail(mailer, "Unterrichtsausfall für " + klasse.name)
 
     sess.logout()
 
@@ -133,6 +131,6 @@ if __name__ == "__main__":
     logging.basicConfig(
         filename="webuntis_reminder.log",
         level=logging.DEBUG,
-        format='%(asctime)s %(levelname)s:%(message)s')
+        format='%(asctime)s %(levelname)s %(module)s %(funcName)s():%(message)s')
 
     main()
