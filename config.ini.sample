@@ -3,10 +3,11 @@
 [credentials]
 username = myusername
 password = 123456
-server= xxx.webuntis.com
+server= https://xxx.webuntis.com
 school= schoolname
 
 [mail]
 host = mailserver
 user = username
 pass = 123456
+sender = user@wherever.de
