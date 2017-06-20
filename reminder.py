@@ -4,6 +4,7 @@
 import webuntis
 import configparser
 import logging
+import locale
 import datetime
 import os
 import functools
@@ -76,17 +77,24 @@ in den folgenden {anzahl_tage} Tagen aus.
                 lambda acc, s: acc+s.name + " " + s.long_name,
                 po.subjects, "")
 
+            # more about specifiers for date formats
+            # https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+            date = po.start.strftime("%c")
             body += " {start} {su}\n".format(
-                start=str(po.start), su=subj)  # , t=teachr, r=room)
+                start=date, su=subj)  # , t=teachr, r=room)
 
         mailer.send_mail(subject, body)
 
     def is_empty(self):
-
         return len(self.period_objects) == 0
 
 
 def main():
+    # setting locale to the default language
+    # this is used for the date format in the mails.
+    # https://docs.python.org/3/library/locale.html#locale.setlocale
+    locale.setlocale(locale.LC_ALL, '')
+
     logging.debug("reading credentials from config file")
     config = configparser.ConfigParser()
     config.read("config.ini")
