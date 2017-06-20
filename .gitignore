@@ -3,4 +3,5 @@ config.ini
 *~
 webuntis_reminder.log
 __pycache__/
-
+webuntis-ve
+.idea
