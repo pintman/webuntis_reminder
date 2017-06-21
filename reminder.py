@@ -107,7 +107,7 @@ def main():
 
     # if klasse is None or recipient is None:
     if recipient is None:
-        print("Provide a recipient in env var KLASSE and RECIPIENT")
+        print("Provide a recipient in env var RECIPIENT")
         exit(1)
 
     logging.debug("creating session object and connecting")
