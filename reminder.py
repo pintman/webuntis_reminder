@@ -86,7 +86,7 @@ class FilteredTimetable:
 
             # more about specifiers for date formats
             # https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
-            date = po.start.strftime("%c")
+            date = po.start.strftime("%a %d %b %Y %H:%M")  # alt: %c
             body += " {start} {su}\n".format(
                 start=date, su=subj)  # , t=teachr, r=room)
 
