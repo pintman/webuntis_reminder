@@ -40,10 +40,10 @@ class FilteredTimetable:
     def __init__(self, session, klasse, days, code, use_cache=True):
         """Creating a filtered table for the given class.
 
-        session: webuntis session used for creating the timetable
-        klasse: create table for this klasse.
-        days: starting from today and up to so many days into the future.
-        code: One of None, "cancelled" or "irregular"
+        :param session: webuntis session used for creating the timetable
+        :param klasse: create table for this klasse.
+        :param days: starting from today and up to so many days into the future.
+        :param code: One of None, "cancelled" or "irregular"
         """
         self.code = code
         self.klasse = klasse
@@ -63,12 +63,16 @@ class FilteredTimetable:
         self.period_objects = [po for po in pos if po.code == code]
         self.period_objects.sort(key=lambda po: po.start)
 
-    def send_via_mail(self, mailer, subject):
-        body = """
-Der folgende Unterricht fällt für die {klasse} 
-in den folgenden {anzahl_tage} Tagen aus.
+    def send_via_mail(self, mailer, subject, body_template):
+        """Send the filtered table via mail.
 
-""".format(klasse=self.klasse, anzahl_tage=self.days)
+        :param mailer: A mail used for Sending
+        :param subject: A subject line.
+        :param body_template: A template string that contains placeholders
+            'days' and 'klasse' which will be substituted when sending.
+        """
+
+        body = body_template.format(klasse=self.klasse, days=self.days)
 
         logging.debug("traversing %s PeriodObjects in session result.",
                       len(self.period_objects))
@@ -124,13 +128,19 @@ def main():
     mailer = Mailer(mailconf['host'], mailconf['user'], mailconf['pass'],
                     mailconf['sender'], recipient)
 
+    mailbody_template = """
+    Der folgende Unterricht fällt für die {klasse} 
+    in den folgenden {days} Tagen aus.
+    
+"""
     for klasse in sess.klassen():
         logging.debug("Checking Klasse %s", klasse.name)
 
         timet = FilteredTimetable(sess, klasse.name, days, code)
         if not timet.is_empty():
             logging.debug("sending mail for %s", klasse.name)
-            timet.send_via_mail(mailer, "Unterrichtsausfall für " + klasse.name)
+            timet.send_via_mail(mailer, "Unterrichtsausfall für " + klasse.name,
+                                mailbody_template)
 
     sess.logout()
 
