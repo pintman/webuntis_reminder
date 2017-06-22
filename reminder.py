@@ -14,14 +14,15 @@ from email.message import EmailMessage
 
 
 class Mailer:
-    def __init__(self, smtp_server, smtp_user, smtp_pass, from_, to):
+    def __init__(self, smtp_server: str, smtp_user: str, smtp_pass: str,
+                 from_: str, to: str) -> None:
         self.smtp_server = smtp_server
         self.smtp_user = smtp_user
         self.smtp_pass = smtp_pass
         self.from_ = from_
         self.to = to
 
-    def send_mail(self, subject, body):
+    def send_mail(self, subject: str, body: str) -> None:
         msg = EmailMessage()
         msg.add_header("X-Mailer", "webuntisreminder")
         msg['Subject'] = subject
@@ -37,7 +38,8 @@ class Mailer:
 
 
 class FilteredTimetable:
-    def __init__(self, session, klasse, days, code, use_cache=True):
+    def __init__(self, session: webuntis.Session, klasse: str, days: int,
+                 code: str, use_cache: bool=True) -> None:
         """Creating a filtered table for the given class.
 
         :param session: webuntis session used for creating the timetable
@@ -63,7 +65,8 @@ class FilteredTimetable:
         self.period_objects = [po for po in pos if po.code == code]
         self.period_objects.sort(key=lambda po: po.start)
 
-    def send_via_mail(self, mailer, subject, body_template):
+    def send_via_mail(self, mailer: Mailer,
+                      subject: str, body_template: str) -> None:
         """Send the filtered table via mail.
 
         :param mailer: A mail used for Sending
@@ -89,11 +92,11 @@ class FilteredTimetable:
 
         mailer.send_mail(subject, body)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return len(self.period_objects) == 0
 
 
-def main():
+def main() -> None:
     # setting locale to the default language
     # this is used for the date format in the mails.
     # https://docs.python.org/3/library/locale.html#locale.setlocale
