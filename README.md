@@ -12,9 +12,15 @@ Installation
     
 Change `config.ini` to reflect your configuration.
     
-You can run the reminder once
+Usage
+-----
+
+You can run the reminder once or recurring in a cronjob. To run it once, just
+invoke it with python.
 
     $ python reminder.py
     
 Or you can create a cronjob that allows for recurring invocations.
 
+    $ conjob -e
+    
