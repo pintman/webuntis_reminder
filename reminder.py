@@ -109,7 +109,6 @@ def main():
     code = os.getenv("CODE", "cancelled")
     recipient = os.getenv("RECIPIENT", None)
 
-    # if klasse is None or recipient is None:
     if recipient is None:
         print("Provide a recipient in env var RECIPIENT")
         exit(1)
