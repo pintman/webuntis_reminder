@@ -1,7 +1,6 @@
-python-webuntis-ve/
 config.ini
 *~
 webuntis_reminder.log
 __pycache__/
-webuntis-ve
+venv
 .idea
