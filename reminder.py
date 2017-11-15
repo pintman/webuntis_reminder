@@ -44,7 +44,7 @@ class FilteredTimetable:
 
         :param session: webuntis session used for creating the timetable
         :param klasse: create table for this klasse.
-        :param days: starting from today and up to so many days into the future.
+        :param days: starting from today and up to days into the future.
         :param code: One of None, "cancelled" or "irregular"
         """
         self.code = code
@@ -52,7 +52,6 @@ class FilteredTimetable:
         self.days = days
 
         date1 = datetime.date.today()
-        # date1 = datetime.date(year=2017, month=7, day=6)
         date2 = date1 + datetime.timedelta(days=days)
 
         klasse_object = session.klassen().filter(name=klasse)[0]
@@ -69,7 +68,7 @@ class FilteredTimetable:
                       subject: str, body_template: str) -> None:
         """Send the filtered table via mail.
 
-        :param mailer: A mail used for Sending
+        :param mailer: A mail used for sending
         :param subject: A subject line.
         :param body_template: A template string that contains placeholders
             'days' and 'klasse' which will be substituted when sending.
@@ -131,7 +130,7 @@ def main() -> None:
                     mailconf['sender'], recipient)
 
     mailbody_template = """
-    Der folgende Unterricht fällt für die {klasse} 
+    Der folgende Unterricht fällt für die {klasse}
     in den folgenden {days} Tagen aus.
     
 """
@@ -141,7 +140,8 @@ def main() -> None:
         timet = FilteredTimetable(sess, klasse.name, days, code)
         if not timet.is_empty():
             logging.debug("sending mail for %s", klasse.name)
-            timet.send_via_mail(mailer, "Unterrichtsausfall für " + klasse.name,
+            timet.send_via_mail(mailer,
+                                "Unterrichtsausfall für " + klasse.name,
                                 mailbody_template)
 
     sess.logout()
